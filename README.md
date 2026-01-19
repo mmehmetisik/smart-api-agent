@@ -2,7 +2,7 @@
 
 > Doğal dille konuşun, agent sizin için API'leri çağırsın!
 
-Smart API Agent, kullanıcının doğal dilde sorduğu soruları anlayan ve cevaplamak için gerekli API'leri otomatik olarak çağıran bir yapay zeka asistanıdır. Bu proje, **AI Agent** kavramını öğrenmek için tasarlanmış bir eğitim projesidir.
+Smart API Agent, kullanıcının doğal dilde sorduğu soruları anlayan ve cevaplamak için gerekli API'leri otomatik olarak çağıran bir yapay zeka asistanıdır. 
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.31+-red.svg)
