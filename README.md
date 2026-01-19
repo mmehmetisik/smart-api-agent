@@ -100,9 +100,9 @@ Bu proje 3 API kullanır (hepsi ücretsiz tier'a sahip):
 | OpenWeatherMap | Hava durumu | [openweathermap.org](https://openweathermap.org/api) |
 | ExchangeRate | Döviz kuru | [exchangerate-api.com](https://www.exchangerate-api.com/) |
 
-## 📚 Öğrenilen Kavramlar
+## 📚 Kavramlar
 
-Bu proje şu kavramları öğretmek için tasarlanmıştır:
+Bu proje şu kavramlar
 
 ### 1. Agent Nedir?
 ```
