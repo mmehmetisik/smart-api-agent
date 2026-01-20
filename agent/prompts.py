@@ -101,29 +101,95 @@ TOOL_PROMPT_TEMPLATE = """
 # Agent'a nasıl davranacağını gösteren örnekler
 # Bu örnekler SYSTEM_PROMPT'a eklenebilir
 #
+# FEW_SHOT_EXAMPLES = """
+# ÖRNEK 1:
+# Kullanıcı: İstanbul'da hava nasıl?
+# [THOUGHT] Kullanıcı hava durumu soruyor, get_weather aracını kullanmalıyım.
+# [ACTION] get_weather(city="Istanbul")
+# [OBSERVATION] Istanbul: 18°C, parçalı bulutlu, nem %65
+# [ANSWER] İstanbul'da hava şu an 18°C ve parçalı bulutlu. Nem oranı %65.
+#
+# ÖRNEK 2:
+# Kullanıcı: Merhaba, nasılsın?
+# [THOUGHT] Bu genel bir sohbet, araç kullanmama gerek yok.
+# [ANSWER] Merhaba! Ben iyiyim, teşekkür ederim. Size nasıl yardımcı olabilirim?
+#
+# ÖRNEK 3:
+# Kullanıcı: Ankara'da hava nasıl ve 50 dolar kaç TL?
+# [THOUGHT] Kullanıcı iki şey istiyor: hava durumu ve döviz kuru. İki araç kullanmam gerekiyor.
+# [ACTION] get_weather(city="Ankara")
+# [OBSERVATION] Ankara: 12°C, güneşli, nem %45
+# [THOUGHT] Hava durumunu aldım, şimdi döviz kurunu almalıyım.
+# [ACTION] get_exchange_rate(from_currency="USD", to_currency="TRY", amount=50)
+# [OBSERVATION] 50 USD = 1,625 TRY
+# [ANSWER] Ankara'da hava 12°C ve güneşli. 50 Amerikan Doları şu an yaklaşık 1,625 Türk Lirası değerinde.
+#
+# # TODO: Daha fazla örnek ekle
+# # TODO: Hata durumları için örnek ekle
+# """
+
+
 FEW_SHOT_EXAMPLES = """
-ÖRNEK 1:
-Kullanıcı: İstanbul'da hava nasıl?
-[THOUGHT] Kullanıcı hava durumu soruyor, get_weather aracını kullanmalıyım.
+--- SENARYO 1: Tarih ve Bağlam Kullanımı ---
+Kullanıcı: Yarın İstanbul'da şemsiye almalı mıyım? (Bugün günlerden Cuma ise)
+[THOUGHT] Kullanıcı "yarın" diyor. Bugün Cuma olduğuna göre, Cumartesi günü İstanbul hava durumuna bakmalıyım.
 [ACTION] get_weather(city="Istanbul")
-[OBSERVATION] Istanbul: 18°C, parçalı bulutlu, nem %65
-[ANSWER] İstanbul'da hava şu an 18°C ve parçalı bulutlu. Nem oranı %65.
+[OBSERVATION] Istanbul: 19°C, Sağanak Yağışlı
+[ANSWER] Evet, yanınıza şemsiye almanız iyi olur! ☔ Yarın (Cumartesi) İstanbul'da sağanak yağış bekleniyor ve hava 19 derece olacak.
 
-ÖRNEK 2:
-Kullanıcı: Merhaba, nasılsın?
-[THOUGHT] Bu genel bir sohbet, araç kullanmama gerek yok.
-[ANSWER] Merhaba! Ben iyiyim, teşekkür ederim. Size nasıl yardımcı olabilirim?
+--- SENARYO 2: Eksik Parametre Yönetimi ---
+Kullanıcı: Dolar ne kadar oldu?
+[THOUGHT] Kullanıcı döviz kuru istiyor ama miktar belirtmemiş. Genelde 1 birim merak edilir ama ben yine de 1 Dolar üzerinden hesaplayıp belirteyim.
+[ACTION] get_exchange_rate(from_currency="USD", to_currency="TRY", amount=1)
+[OBSERVATION] 1 USD = 34.15 TRY
+[ANSWER] Şu an piyasalarda 1 Amerikan Doları yaklaşık **34.15 TL** seviyesinde işlem görüyor. 💰
 
-ÖRNEK 3:
-Kullanıcı: Ankara'da hava nasıl ve 50 dolar kaç TL?
-[THOUGHT] Kullanıcı iki şey istiyor: hava durumu ve döviz kuru. İki araç kullanmam gerekiyor.
-[ACTION] get_weather(city="Ankara")
-[OBSERVATION] Ankara: 12°C, güneşli, nem %45
-[THOUGHT] Hava durumunu aldım, şimdi döviz kurunu almalıyım.
-[ACTION] get_exchange_rate(from_currency="USD", to_currency="TRY", amount=50)
-[OBSERVATION] 50 USD = 1,625 TRY
-[ANSWER] Ankara'da hava 12°C ve güneşli. 50 Amerikan Doları şu an yaklaşık 1,625 Türk Lirası değerinde.
+--- SENARYO 3: Zincirleme Mantık (Karmaşık İstek) ---
+Kullanıcı: 500 Euro bozdurup Kapadokya'ya gitsem hava nasıl olur?
+[THOUGHT] İki aşamalı bir soru. 
+1. Adım: 500 Euro'nun TL karşılığını bulmalıyım.
+2. Adım: Kapadokya (Nevşehir) hava durumunu kontrol etmeliyim.
+[ACTION] get_exchange_rate(from_currency="EUR", to_currency="TRY", amount=500)
+[OBSERVATION] 500 EUR = 18.500 TRY
+[THOUGHT] Para bilgisini aldım (18.500 TL). Şimdi hava durumu için Kapadokya bölgesini (genellikle Nevşehir olarak geçer) sorgulayacağım.
+[ACTION] get_weather(city="Nevşehir")
+[OBSERVATION] Nevşehir: 12°C, Parçalı Bulutlu
+[THOUGHT] Tüm bilgiler hazır. Kullanıcıya birleştirilmiş bir cevap sunabilirim.
+[ANSWER] Harika bir plan! 🎒
+Paranızı bozdurduğunuzda yaklaşık **18.500 TL** yapıyor.
+Kapadokya (Nevşehir) tarafında ise hava şu an 12°C ve parçalı bulutlu. Gezmek için güzel bir hava! 🌤️
 
-# TODO: Daha fazla örnek ekle
-# TODO: Hata durumları için örnek ekle
+--- SENARYO 4: Sohbet ve Reddetme ---
+Kullanıcı: Bana bir python kodu yaz.
+[THOUGHT] Kullanıcı kod yazmamı istiyor. Ben bir API asistanıyım, kod yazma yeteneğim (Code Interpreter) şu an aktif araçlarım arasında yok. Ancak genel bilgimle cevap verebilirim.
+[ANSWER] Ben şu an için sadece hava durumu ve döviz bilgileri konusunda uzmanlaşmış bir asistanım. 🤖 Ancak Python ile ilgili sorularınızı cevaplamaya çalışabilirim!
+
+--- SENARYO 5: Hata Yönetimi ve Kendi Kendini Düzeltme (Self-Correction) ---
+Kullanıcı: Istnbul'da hava nasıl?
+[THOUGHT] Kullanıcı şehir ismini yanlış yazmış olabilir ("Istnbul"). Önce olduğu gibi deneyeyim.
+[ACTION] get_weather(city="Istnbul")
+[OBSERVATION] Error: City 'Istnbul' not found.
+[THOUGHT] API hata verdi, şehir bulunamadı. Muhtemelen yazım hatası var. "Istanbul" olarak düzeltip tekrar denemeliyim.
+[ACTION] get_weather(city="Istanbul")
+[OBSERVATION] Istanbul: 20°C, Parçalı Bulutlu
+[ANSWER] İstanbul için (yazım hatasını düzelterek baktım) hava şu an 20 derece ve parçalı bulutlu. 🌤️
+
+--- SENARYO 6: Yabancı Dil Girdisi - Türkçe Çıktı Kuralı ---
+Kullanıcı: What is the weather in London right now?
+[THOUGHT] Kullanıcı İngilizce sordu. Ancak benim sistem kurallarım gereği (System Prompt) cevabı mutlaka **Türkçe** vermeliyim.
+[ACTION] get_weather(city="London")
+[OBSERVATION] London: 12°C, Rainy
+[ANSWER] Londra'da hava şu an 12 derece ve yağmurlu. ☔
+
+--- SENARYO 7: Yanıltıcı Soru (Araç Kullanmama) ---
+Kullanıcı: 100 dolar büyük bir para mı?
+[THOUGHT] Kullanıcı dövizle ilgili bir şey sordu ama bu "öznel" bir soru. Yine de referans olması için önce kur değerini öğrenip, sonra yorum yapmalıyım.
+[ACTION] get_exchange_rate(from_currency="USD", to_currency="TRY", amount=100)
+[OBSERVATION] 100 USD = 3400 TRY
+[ANSWER] Bu kişiden kişiye değişir ancak şu anki kurla 100 Dolar yaklaşık **3400 TL** yapıyor. Türkiye şartlarında güzel bir akşam yemeği parası diyebiliriz! 🍽️
+
+--- SENARYO 8: Geçmiş Tarih (API Sınırı) ---
+Kullanıcı: Geçen hafta Antalya'da hava nasıldı?
+[THOUGHT] Kullanıcı geçmiş veriyi soruyor. Benim erişimim olan hava durumu aracı sadece anlık ve gelecek tahmini veriyor, geçmiş veriyi tutmuyor.
+[ANSWER] Üzgünüm, hava durumu aracım sadece anlık durumu ve gelecek tahminlerini görüntüleyebiliyor. Geçmişe dönük veri sağlayamıyorum. 🕰️
 """
