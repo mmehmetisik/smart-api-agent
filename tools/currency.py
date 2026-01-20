@@ -33,6 +33,40 @@ from config import EXCHANGERATE_BASE_URL
 
 
 def get_exchange_rate(from_currency: str, to_currency: str, amount: float) -> dict:
+    from_currency = from_currency.upper()
+    to_currency = to_currency.upper()
+
+    url = f"{EXCHANGERATE_BASE_URL}/{from_currency}"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "error": str(e)}
+
+    if "rates" not in data or to_currency not in data["rates"]:
+        return {"success": False, "error": "Geçersiz para birimi"}
+
+    rate = data["rates"][to_currency]
+    result = amount * rate
+
+    return {
+        "success": True,
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "amount": amount,
+        "rate": round(rate, 4),
+        "result": round(result, 2),
+        "error": None
+    }
+
+
+if __name__ == "__main__":
+    print(get_exchange_rate("USD", "TRY", 100))
+
+
+def get_exchange_rate(from_currency: str, to_currency: str, amount: float) -> dict:
     """
     Bir para birimini diğerine çevirir.
     
