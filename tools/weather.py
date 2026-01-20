@@ -66,38 +66,41 @@ def get_weather(city: str) -> dict:
     """
     
     # TODO: API parametrelerini hazırla
-    # params = {
-    #     "q": city,
-    #     "appid": OPENWEATHER_API_KEY,
-    #     "units": "metric",  # Celsius için
-    #     "lang": "tr"  # Türkçe açıklamalar için
-    # }
+    params = {
+        "q": city,
+        "appid": OPENWEATHER_API_KEY,
+        "units": "metric",  
+        "lang": "tr"        
+    }
     
     # TODO: API çağrısı yap
-    # try:
-    #     response = requests.get(OPENWEATHER_BASE_URL, params=params)
-    #     response.raise_for_status()  # HTTP hatalarını yakala
-    #     data = response.json()
-    # except requests.exceptions.RequestException as e:
-    #     return {"success": False, "error": f"API hatası: {str(e)}"}
+    try:
+        response = requests.get(OPENWEATHER_BASE_URL, params=params)
+        
+        # TODO: Hata durumlarını ele al (404 ve 401)
+        if response.status_code == 404:
+            return {"success": False, "error": f"Şehir bulunamadı: {city}"}
+        
+        if response.status_code == 401:
+            return {"success": False, "error": "API key geçersiz."}
+            
+        response.raise_for_status() 
+        data = response.json()
+
+        # TODO: Başarılı cevabı formatla
+        return {
+            "success": True,
+            "city": data["name"],
+            "temperature": round(data["main"]["temp"]),
+            "description": data["weather"][0]["description"],
+            "humidity": data["main"]["humidity"],
+            "wind_speed": data["wind"]["speed"],
+            "error": None
+        }
     
-    # TODO: Başarılı cevabı formatla
-    # return {
-    #     "success": True,
-    #     "city": data["name"],
-    #     "temperature": round(data["main"]["temp"]),
-    #     "description": data["weather"][0]["description"],
-    #     "humidity": data["main"]["humidity"],
-    #     "wind_speed": data["wind"]["speed"],
-    #     "error": None
-    # }
-    
-    # TODO: Hata durumlarını ele al
-    # - 404: Şehir bulunamadı
-    # - 401: API key geçersiz
-    # - Diğer hatalar
-    
-    pass  # Bu satırı sil ve fonksiyonu tamamla
+    # TODO: Hata durumlarını ele al (Bağlantı ve Diğer hatalar)
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "error": f"API bağlantı hatası: {str(e)}"}
 
 
 # =============================================================================
