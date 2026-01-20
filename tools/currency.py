@@ -136,7 +136,67 @@ def get_exchange_rate(from_currency: str, to_currency: str, amount: float) -> di
     #     "error": None
     # }
     
-    pass  # Bu satırı sil ve fonksiyonu tamamla
+def get_exchange_rate(from_currency: str, to_currency: str, amount: float) -> dict:
+    """
+    Bir para birimini diğerine çevirir.
+    """
+
+    #  Para birimi kodlarını büyük harfe çevir
+    import requests
+    EXCHANGERATE_BASE_URL = "https://api.exchangerate-api.com/v4/latest"
+
+    # amount kontrolü 
+    if amount < 0:
+        return {
+            "success": False,
+            "error": "Tutar negatif olamaz"
+        }
+
+    from_currency = from_currency.upper()
+    to_currency = to_currency.upper()
+
+    #  API URL'ini oluştur
+    url = f"{EXCHANGERATE_BASE_URL}/{from_currency}"
+
+    # API çağrısı yap
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": f"API hatası: {str(e)}"
+        }
+
+    # Hata yönetimi – geçersiz para birimi
+    if "rates" not in data:
+        return {
+            "success": False,
+            "error": f"Geçersiz para birimi: {from_currency}"
+        }
+
+    if to_currency not in data["rates"]:
+        return {
+            "success": False,
+            "error": f"Geçersiz para birimi: {to_currency}"
+        }
+
+    # Para birimi çevirisini hesapla
+    rate = data["rates"][to_currency]
+    result = amount * rate
+
+    #  Sonucu döndür
+    return {
+        "success": True,
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "amount": amount,
+        "rate": round(rate, 4),
+        "result": round(result, 2),
+        "error": None
+    }
+
 
 
 # =============================================================================
@@ -145,26 +205,30 @@ def get_exchange_rate(from_currency: str, to_currency: str, amount: float) -> di
 # Bu kısım dosya direkt çalıştırıldığında test yapar
 # Kullanım: python tools/currency.py
 
+def yazdir(result):
+    if result.get("success"):
+        print(f"Kur: {result['rate']}")
+        print(f"Sonuç: {result['result']}")
+    else:
+        print(f"Hata: {result.get('error')}")
+
 if __name__ == "__main__":
-    # Test 1: USD -> TRY
     print("Test 1: 100 USD -> TRY")
-    result = get_exchange_rate("USD", "TRY", 100)
-    print(f"Sonuç: {result}")
+    res = get_exchange_rate("USD", "TRY", 100)
+    yazdir(res)
     print()
-    
-    # Test 2: EUR -> TRY
+
     print("Test 2: 50 EUR -> TRY")
-    result = get_exchange_rate("EUR", "TRY", 50)
-    print(f"Sonuç: {result}")
+    res = get_exchange_rate("EUR", "TRY", 50)
+    yazdir(res)
     print()
-    
-    # Test 3: Küçük harf testi
+
     print("Test 3: 100 usd -> try (küçük harf)")
-    result = get_exchange_rate("usd", "try", 100)
-    print(f"Sonuç: {result}")
+    res = get_exchange_rate("usd", "try", 100)
+    yazdir(res)
     print()
-    
-    # Test 4: Geçersiz para birimi
+
     print("Test 4: Geçersiz para birimi")
-    result = get_exchange_rate("XYZ", "TRY", 100)
-    print(f"Sonuç: {result}")
+    res = get_exchange_rate("XYZ", "TRY", 100)
+    yazdir(res)
+
