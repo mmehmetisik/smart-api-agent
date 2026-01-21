@@ -172,7 +172,15 @@ import locale
 from datetime import datetime
 from groq import Groq
 
-from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS, TEMPERATURE
+# FIX: Model güncellendi (3.1 -> 3.3)
+try:
+    from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS, TEMPERATURE
+except ImportError:
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    MODEL_NAME = "llama-3.3-70b-versatile"  # GÜNCELLEME BURADA
+    MAX_ITERATIONS = 5
+    TEMPERATURE = 0.7
+
 from agent.prompts import SYSTEM_PROMPT
 
 
@@ -186,7 +194,6 @@ class Agent:
         self.history = []
         messages = []
 
-        # Tarih ve Prompt
         now = datetime.now()
         prompt = SYSTEM_PROMPT.format(
             date=now.strftime("%d %B %Y"),
@@ -198,7 +205,6 @@ class Agent:
         messages.append({"role": "user", "content": user_input})
         print(f"👤 Kullanıcı: {user_input}")
 
-        # ReAct Döngüsü
         for i in range(MAX_ITERATIONS):
             print(f"🔄 Düşünüyor... Adım {i + 1}")
             response = self._call_llm(messages)
