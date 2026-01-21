@@ -186,6 +186,7 @@ from groq import Groq
 try:
     from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS, TEMPERATURE
 except ImportError:
+    # Config dosyası yoksa varsayılan değerleri kullan (Güvenli Mod)
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     MODEL_NAME = "llama-3.3-70b-versatile"
     MAX_ITERATIONS = 5
@@ -194,6 +195,8 @@ except ImportError:
 from agent.prompts import SYSTEM_PROMPT
 
 # BAĞIMLILIK YÖNETİMİ
+# Takım arkadaşlarının modülleri henüz birleşmemiş olabilir diye
+# Kodumuz patlamasın diye bunları "try-except" bloğu ile içeri alıyoruz.
 try:
     from tools.registry import ToolRegistry
     from utils.parser import parse_llm_response
@@ -203,7 +206,22 @@ except ImportError:
 
 
 class Agent:
+    """
+        LLM tabanlı, araç kullanabilen akıllı ajan sınıfı.
+
+        Attributes:
+            client (Groq): LLM API istemcisi.
+            tools (ToolRegistry, optional): Araçların kayıtlı olduğu yönetim sınıfı.
+            history (List[Dict]): Konuşma ve işlem geçmişini tutan liste.
+        """
     def __init__(self, tool_registry=None):
+        """
+                Agent sınıfını başlatır.
+
+                Args:
+                    tool_registry: Dışarıdan enjekte edilebilen araç kayıt sınıfı.
+                                   Eğer verilmezse otomatik import etmeye çalışır.
+                """
         print("🤖 Agent başlatılıyor...")
 
         if not GROQ_API_KEY:
@@ -211,14 +229,14 @@ class Agent:
 
         self.client = Groq(api_key=GROQ_API_KEY)
 
-        # ToolRegistry kontrolü
+        # ToolRegistry Entegrasyonu (Gamze'nin kod yapısına uyumluluk kontrolü)
         self.tools = None
         if tool_registry:
             self.tools = tool_registry
         elif ToolRegistry:
             try:
                 temp_tools = ToolRegistry()
-                # DÜZELTME: Gamze'nin fonksiyon ismini kontrol ediyoruz
+                # Gamze'nin belirlediği metodların varlığını kontrol ediyoruz (Duck Typing)
                 if hasattr(temp_tools, 'get_tools_description') and hasattr(temp_tools, 'execute'):
                     self.tools = temp_tools
                 else:
@@ -229,7 +247,18 @@ class Agent:
         self.history = []
 
     def run(self, user_input: str) -> tuple[str, list]:
-        self.history = []
+        """
+                Kullanıcı girdisini alır ve ReAct döngüsünü başlatır.
+
+                Bu metod, ajanın "Düşün -> Araç Seç -> Uygula -> Gözlemle" döngüsünü yönetir.
+
+                Args:
+                    user_input (str): Kullanıcının sorduğu soru veya verdiği komut.
+
+                Returns:
+                    Tuple[str, List]: (Final Cevap, İşlem Geçmişi)
+                """
+        self.history = [] # Her yeni soruda hafızayı temizle
         messages = []
 
         # 1. Tarih Ayarları
@@ -244,13 +273,13 @@ class Agent:
         tools_text = "Şu an aktif araç yok (Test Modu)."
         if self.tools:
             try:
-                # DÜZELTME: Gamze'nin fonksiyon ismini çağırıyoruz
+                # Gamze'nin registry.py modülünden araç tanımlarını çekiyoruz
                 tools_text = self.tools.get_tools_description()
             except Exception as e:
                 print(f"Araç listesi alınamadı: {e}")
                 self.tools = None
 
-                # 3. Prompt Hazırla
+                # 3. Sistem Prompt'unun Oluşturulması
         try:
             formatted_system_prompt = SYSTEM_PROMPT.format(
                 date=now.strftime("%d %B %Y"),
@@ -265,7 +294,7 @@ class Agent:
 
         print(f"\nKullanıcı: {user_input}")
 
-        # 4. ReAct Döngüsü
+        # 4. Ana ReAct Döngüsü (Maksimum iterasyon sayısı kadar döner)
         for iteration in range(MAX_ITERATIONS):
             print(f"Düşünüyor... (Adım {iteration + 1}/{MAX_ITERATIONS})")
 
@@ -281,7 +310,7 @@ class Agent:
                 except:
                     pass
 
-            # Fallback (Yedek) Parser
+            # Fallback (Yedek) Parser: Parser modülü henüz gelmediyse veya hata verdiyse devreye girer
             if parsed is None:
                 if "tool" in str(llm_response) and "get_weather" in str(llm_response):
                     parsed = {"type": "action", "tool": "get_weather", "params": {"city": "Ankara"}}
@@ -314,6 +343,7 @@ class Agent:
         return "Döngü sınırına ulaşıldı.", self.history
 
     def _call_llm(self, messages: list) -> str:
+        """Groq API'sine istek atar ve yanıtı döndürür."""
         try:
             response = self.client.chat.completions.create(
                 model=MODEL_NAME,
@@ -325,13 +355,16 @@ class Agent:
             return f"API Hatası: {e}"
 
     def _execute_action(self, tool_name: str, params: dict) -> str:
+        """
+                Belirtilen aracı çalıştırır. Eğer araçlar yüklenmediyse Mock data döner.
+        """
         if self.tools:
             try:
                 return self.tools.execute(tool_name, **params)
             except Exception as e:
                 return f"Araç Hatası: {e}"
 
-        # Mock Cevaplar
+        # # --- MOCK DATA (Simülasyon) ---
         if tool_name == "get_weather":
             return "Ankara: 18°C, Parçalı Bulutlu (Simülasyon Verisi)"
         if tool_name == "convert_currency":
@@ -340,7 +373,7 @@ class Agent:
         return f"{tool_name} aracı simülasyon modunda başarılı."
 
 
-# TEST BLOĞU (BU KISIM EKLENDİ)
+# TEST BLOĞU (Sadece bu dosya doğrudan çalıştırıldığında devreye girer)
 if __name__ == "__main__":
     print("\nFINAL TEST MODU BAŞLATILIYOR...")
 
@@ -360,3 +393,4 @@ if __name__ == "__main__":
         print(cevap)
     except Exception as e:
         print(f"\nBEKLENMEYEN  HATA: {e}")
+
