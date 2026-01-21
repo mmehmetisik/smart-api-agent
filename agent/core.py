@@ -359,4 +359,4 @@ if __name__ == "__main__":
         print("\nSONUÇ:")
         print(cevap)
     except Exception as e:
-        print(f"\nBEKLENMEYEN HATA: {e}")
+        print(f"\nBEKLENMEYEN  HATA: {e}")
