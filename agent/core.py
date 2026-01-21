@@ -167,31 +167,28 @@
 
 #############################################################################################################
 
-"""
-core.py - Agent Ana İskeleti
-"""
 import os
 from groq import Groq
 
-# TODO: Config importları yapılacak
-# TODO: Prompt importları yapılacak
+# Config ayarları (Test için varsayılanlar)
+try:
+    from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS
+except ImportError:
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    MODEL_NAME = "llama-3.1-70b-versatile"  # İlk başta eski modelle başlıyoruz
+    MAX_ITERATIONS = 5
+
 
 class Agent:
-    def __init__(self):
-        # TODO: Groq client başlatılacak
-        # TODO: Tool registry bağlanacak
+    def __init__(self, tool_registry=None):
+        print("Agent başlatılıyor...")
+        if not GROQ_API_KEY:
+            print("UYARI: Groq API Key bulunamadı!")
+
+        self.client = Groq(api_key=GROQ_API_KEY)
+        self.tools = tool_registry
         self.history = []
-        print("Agent iskeleti başlatıldı.")
 
     def run(self, user_input):
-        # TODO: ReAct döngüsü kurulacak
-        # TODO: System prompt hazırlanacak
-        pass
-
-    def _call_llm(self, messages):
-        # TODO: API isteği atılacak
-        pass
-
-    def _execute_action(self, tool_name, params):
-        # TODO: Araç çalıştırılacak
+        # TODO: Döngü mantığı buraya gelecek
         pass
