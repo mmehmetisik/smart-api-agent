@@ -29,7 +29,8 @@ EXCHANGERATE_API_KEY = os.getenv("EXCHANGERATE_API_KEY")
 # =============================================================================
 
 # Groq'ta kullanılacak model
-MODEL_NAME = "llama-3.1-70b-versatile"
+# Not: llama-3.1 deprecated olduğu için llama-3.3'e güncellendi
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 # Agent'ın maksimum düşünme döngüsü (sonsuz döngüyü önler)
 MAX_ITERATIONS = 5
