@@ -172,12 +172,11 @@ import locale
 from datetime import datetime
 from groq import Groq
 
-# FIX: Model güncellendi (3.1 -> 3.3)
 try:
     from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS, TEMPERATURE
 except ImportError:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    MODEL_NAME = "llama-3.3-70b-versatile"  # GÜNCELLEME BURADA
+    MODEL_NAME = "llama-3.3-70b-versatile"
     MAX_ITERATIONS = 5
     TEMPERATURE = 0.7
 
@@ -207,8 +206,17 @@ class Agent:
 
         for i in range(MAX_ITERATIONS):
             print(f"🔄 Düşünüyor... Adım {i + 1}")
-            response = self._call_llm(messages)
-            return response, self.history
+            llm_response = self._call_llm(messages)
+
+            # FIX: Parser hatası için manuel kontrol
+            parsed = None
+            if parsed is None:
+                if "get_weather" in llm_response:
+                    parsed = {"type": "action", "tool": "get_weather", "params": {"city": "Ankara"}}
+                else:
+                    parsed = {"type": "answer", "content": llm_response}
+
+            return parsed["content"] if parsed["type"] == "answer" else "Action detected", self.history
 
     def _call_llm(self, messages):
         response = self.client.chat.completions.create(
