@@ -168,27 +168,44 @@
 #############################################################################################################
 
 import os
+import locale
+from datetime import datetime
 from groq import Groq
 
-# Config ayarları (Test için varsayılanlar)
-try:
-    from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS
-except ImportError:
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    MODEL_NAME = "llama-3.1-70b-versatile"  # İlk başta eski modelle başlıyoruz
-    MAX_ITERATIONS = 5
+from config import GROQ_API_KEY, MODEL_NAME, MAX_ITERATIONS, TEMPERATURE
+from agent.prompts import SYSTEM_PROMPT
 
 
 class Agent:
     def __init__(self, tool_registry=None):
-        print("Agent başlatılıyor...")
-        if not GROQ_API_KEY:
-            print("UYARI: Groq API Key bulunamadı!")
-
         self.client = Groq(api_key=GROQ_API_KEY)
         self.tools = tool_registry
         self.history = []
 
-    def run(self, user_input):
-        # TODO: Döngü mantığı buraya gelecek
-        pass
+    def run(self, user_input: str):
+        self.history = []
+        messages = []
+
+        # Tarih ve Prompt
+        now = datetime.now()
+        prompt = SYSTEM_PROMPT.format(
+            date=now.strftime("%d %B %Y"),
+            day_of_week=now.strftime("%A"),
+            tools_description="Tools list placeholder"
+        )
+
+        messages.append({"role": "system", "content": prompt})
+        messages.append({"role": "user", "content": user_input})
+        print(f"👤 Kullanıcı: {user_input}")
+
+        # ReAct Döngüsü
+        for i in range(MAX_ITERATIONS):
+            print(f"🔄 Düşünüyor... Adım {i + 1}")
+            response = self._call_llm(messages)
+            return response, self.history
+
+    def _call_llm(self, messages):
+        response = self.client.chat.completions.create(
+            model=MODEL_NAME, messages=messages, temperature=TEMPERATURE
+        )
+        return response.choices[0].message.content
