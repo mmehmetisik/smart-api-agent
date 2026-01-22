@@ -11,15 +11,8 @@ Smart API Agent, kullanıcının doğal dilde sorduğu soruları anlayan ve ceva
 
 ## 📸 Demo
 
-![Smart API Agent Demo](./images/demo.png)
+<img width="1262" height="1266" alt="Ekran görüntüsü 2026-01-23 011444" src="https://github.com/user-attachments/assets/0c3777cb-5c86-42ee-9ac8-37126d365db8" />
 
-<!-- 
-FOTOĞRAF BURAYA EKLENECEK!
-1. Proje klasöründe "images" adında bir klasör oluştur
-2. Ekran görüntüsünü "demo.png" olarak kaydet
-3. images klasörüne koy
-Yol: smart-api-agent/images/demo.png
--->
 
 ## 🎯 Ne Yapıyor?
 
