@@ -90,8 +90,15 @@ class ToolRegistry:
         #     "description": description,
         #     "parameters": parameters
         # }
-        
-        pass  # Bu satırı sil ve metodu tamamla
+
+        if name in self._tools:
+            raise ValueError(f"Araç zaten kayıtlı: {name}")
+
+        self._tools[name] = {
+            "func": func,
+            "description": description,
+            "parameters": parameters
+        }
     
     def get_tools_description(self) -> str:
         """
@@ -117,8 +124,21 @@ class ToolRegistry:
         #     params = ", ".join([f"{k} ({v})" for k, v in tool["parameters"].items()])
         #     description += f"  Parametreler: {params}\n\n"
         # return description
-        
-        pass  # Bu satırı sil ve metodu tamamla
+
+        description = ""
+
+        for name, tool in self._tools.items():
+            description += f"- {name}: {tool['description']}\n"
+
+            if tool["parameters"]:
+                params = ", ".join(
+                    [f"{param} ({desc})" for param, desc in tool["parameters"].items()]
+                )
+                description += f"  Parametreler: {params}\n"
+
+            description += "\n"
+
+        return description.strip()
     
     def execute(self, tool_name: str, **kwargs) -> any:
         """
@@ -145,8 +165,14 @@ class ToolRegistry:
         # TODO: Aracı çalıştır ve sonucu döndür
         # tool = self._tools[tool_name]
         # return tool["func"](**kwargs)
-        
-        pass  # Bu satırı sil ve metodu tamamla
+
+        if tool_name not in self._tools:
+            raise ValueError(f"Araç bulunamadı: {tool_name}")
+
+        tool = self._tools[tool_name]
+        func = tool["func"]
+
+        return func(**kwargs)
     
     def list_tools(self) -> list:
         """
@@ -216,8 +242,33 @@ def create_default_registry() -> ToolRegistry:
     # )
     
     # return registry
-    
-    pass  # Bu satırı sil ve fonksiyonu tamamla
+
+    from tools.weather import get_weather
+    from tools.currency import get_exchange_rate
+
+    registry = ToolRegistry()
+
+    registry.register(
+        name="get_weather",
+        func=get_weather,
+        description="Belirtilen şehir için güncel hava durumu bilgisi getirir (sıcaklık, durum, nem)",
+        parameters={
+            "city": "Şehir adı (örn: Istanbul, Ankara, London)"
+        }
+    )
+
+    registry.register(
+        name="get_exchange_rate",
+        func=get_exchange_rate,
+        description="Bir para birimini diğerine çevirir ve güncel kuru gösterir",
+        parameters={
+            "from_currency": "Kaynak para birimi kodu (örn: USD, EUR)",
+            "to_currency": "Hedef para birimi kodu (örn: TRY, GBP)",
+            "amount": "Çevrilecek miktar (sayı)"
+        }
+    )
+
+    return registry
 
 
 # =============================================================================
