@@ -1,0 +1,17 @@
+# =============================================================================
+# Smart API Agent - Gerekli Kütüphaneler
+# =============================================================================
+# Kurulum: pip install -r requirements.txt
+# =============================================================================
+
+# LLM - Groq API
+groq==0.4.2
+
+# Web Framework - Arayüz için
+streamlit==1.31.0
+
+# HTTP İstekleri - API çağrıları için
+requests==2.31.0
+
+# Environment Variables - .env dosyası okumak için
+python-dotenv==1.0.0
