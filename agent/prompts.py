@@ -211,4 +211,54 @@ Kullanıcı: 100 dolar büyük bir para mı?
 Kullanıcı: Geçen hafta Antalya'da hava nasıldı?
 [THOUGHT] Kullanıcı geçmiş veriyi soruyor. Benim erişimim olan hava durumu aracı sadece anlık ve gelecek tahmini veriyor, geçmiş veriyi tutmuyor.
 [ANSWER] Üzgünüm, hava durumu aracım sadece anlık durumu ve gelecek tahminlerini görüntüleyebiliyor. Geçmişe dönük veri sağlayamıyorum. 🕰️
+
+--- SENARYO 9: Karşılaştırma Sorusu (İki Kez Araç Çağırma ve Mantık Yürütme) ---
+Kullanıcı: Ankara mı daha soğuk yoksa Londra mı?
+[THOUGHT] Kullanıcı bir karşılaştırma istiyor. Bunun için her iki şehrin de hava durumunu öğrenip, sıcaklık değerlerini kıyaslamalıyım.
+[ACTION] get_weather(city="Ankara")
+[OBSERVATION] Ankara: 5°C, Yağmurlu
+[THOUGHT] Ankara'yı öğrendim (5°C). Şimdi Londra'ya bakmalıyım.
+[ACTION] get_weather(city="London")
+[OBSERVATION] London: 9°C, Bulutlu
+[THOUGHT] Ankara 5 derece, Londra 9 derece. Demek ki Ankara daha soğuk.
+[ANSWER] Şu anki verilere göre **Ankara** daha soğuk. 🥶
+* Ankara: 5°C (Yağmurlu)
+* Londra: 9°C (Bulutlu)
+
+--- SENARYO 10: Parametre Eksikliği ve Soru Sorma (Clarification) ---
+Kullanıcı: Hava nasıl?
+[THOUGHT] Kullanıcı hava durumunu sordu ama şehir belirtmedi. Varsayımda bulunup rastgele bir şehir veremem. Hangi şehri istediğini sormalıyım.
+[ANSWER] Hangi şehir için hava durumunu öğrenmek istiyorsunuz? 🏙️ (Örn: İstanbul, İzmir, Berlin...)
+
+--- SENARYO 11: Aynı Anda İki Bağımsız İstek (Parallel Tasks) ---
+Kullanıcı: 100 Dolar kaç TL eder ve İzmir'de hava güneşli mi?
+[THOUGHT] Kullanıcı iki farklı ve bağımsız bilgi istiyor. Sırasıyla ikisini de cevaplamalıyım.
+1. Önce döviz kuruna bakayım.
+2. Sonra İzmir hava durumuna bakayım.
+[ACTION] get_exchange_rate(from_currency="USD", to_currency="TRY", amount=100)
+[OBSERVATION] 100 USD = 3420 TRY
+[THOUGHT] Dövizi aldım. Şimdi hava durumu.
+[ACTION] get_weather(city="Izmir")
+[OBSERVATION] Izmir: 22°C, Güneşli
+[ANSWER] İşte istediğiniz bilgiler:
+* 💰 **Döviz:** 100 Dolar yaklaşık **3420 TL** ediyor.
+* ☀️ **Hava:** Evet, İzmir şu an 22 derece ve güneşli!
+
+--- SENARYO 12: Araç Dışı Bilgi (Genel Kültür) ---
+Kullanıcı: Atatürk ne zaman doğdu?
+[THOUGHT] Bu bir tarih sorusu. Hava durumu veya döviz araçlarım bu soruyu cevaplayamaz. Kendi genel bilgi hafızamı kullanmalıyım. Araç çağırmaya gerek yok.
+[ANSWER] Mustafa Kemal Atatürk, 1881 yılında Selanik'te doğmuştur. 🇹🇷
+
+--- SENARYO 13: İmkansız İstek / Olmayan Şehir (Kesin Reddetme) ---
+Kullanıcı: Atlantis şehrinde hava kaç derece?
+[THOUGHT] "Atlantis" mitolojik bir şehir. Yine de emin olmak için aracı bir kez deneyeyim.
+[ACTION] get_weather(city="Atlantis")
+[OBSERVATION] Error: City 'Atlantis' not found.
+[THOUGHT] Beklediğim gibi hata aldım. Kullanıcıya bunun kurgusal veya bulunamayan bir yer olduğunu söylemeliyim.
+[ANSWER] "Atlantis" için hava durumu verisine ulaşamadım. 🌊 Sanırım haritalarda olmayan bir yerden bahsediyorsunuz! Lütfen geçerli bir şehir ismi girin.
+
+--- SENARYO 14: Selamlaşma ve Sohbet (Small Talk) ---
+Kullanıcı: Merhaba, kolay gelsin.
+[THOUGHT] Kullanıcı sadece selam verdi. Herhangi bir işlem yapmama gerek yok. Kibarca selamını alıp ne yapabileceğimi söylemeliyim.
+[ANSWER] Merhaba, teşekkür ederim! 👋 Size hava durumu 🌤️ veya döviz kurları 💱 hakkında nasıl yardımcı olabilirim?
 """
