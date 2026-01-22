@@ -6,8 +6,20 @@ Smart API Agent, kullanıcının doğal dilde sorduğu soruları anlayan ve ceva
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.31+-red.svg)
-![Groq](https://img.shields.io/badge/LLM-Groq-green.svg)
+![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.3-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+## 📸 Demo
+
+![Smart API Agent Demo](./images/demo.png)
+
+<!-- 
+FOTOĞRAF BURAYA EKLENECEK!
+1. Proje klasöründe "images" adında bir klasör oluştur
+2. Ekran görüntüsünü "demo.png" olarak kaydet
+3. images klasörüne koy
+Yol: smart-api-agent/images/demo.png
+-->
 
 ## 🎯 Ne Yapıyor?
 
@@ -96,13 +108,13 @@ Bu proje 3 API kullanır (hepsi ücretsiz tier'a sahip):
 
 | API | Amaç | Kayıt Linki |
 |-----|------|-------------|
-| Groq | LLM (Llama 3.1) | [console.groq.com](https://console.groq.com/keys) |
+| Groq | LLM (Llama 3.3) | [console.groq.com](https://console.groq.com/keys) |
 | OpenWeatherMap | Hava durumu | [openweathermap.org](https://openweathermap.org/api) |
 | ExchangeRate | Döviz kuru | [exchangerate-api.com](https://www.exchangerate-api.com/) |
 
-## 📚 Kavramlar
+## 📚 Öğrenilen Kavramlar
 
-Bu proje şu kavramlar
+Bu proje şu kavramları öğretmek için tasarlanmıştır:
 
 ### 1. Agent Nedir?
 ```
@@ -122,11 +134,11 @@ Agent'ın doğru davranması için system prompt tasarımı.
 
 | İsim | Görev | Dosyalar |
 |------|-------|----------|
+| Mehmet IŞIK | Team Lead & UI | `app.py`, proje koordinasyonu |
 | Gözde | Weather Tool | `tools/weather.py` |
 | İrem | Currency Tool | `tools/currency.py` |
 | Gamze | Registry & Parser | `tools/registry.py`, `utils/parser.py` |
 | Onur | Agent Core | `agent/core.py`, `agent/prompts.py` |
-| Mehmet | Team Lead & UI | `app.py`, koordinasyon |
 
 ## 📄 Lisans
 
