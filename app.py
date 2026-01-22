@@ -2,8 +2,8 @@
 app.py - Streamlit Ana Uygulaması
 =================================
 Görev: Team Lead (Mehmet)
-Branch: main geliştirme (tüm parçalar birleştikten sonra)
-Durum: YAPILACAK (en son yapılacak)
+Branch: develop
+Durum: TAMAMLANDI ✓
 
 Bu dosya uygulamanın arayüzünü oluşturur.
 Tüm diğer parçalar tamamlandıktan sonra yazılacak.
@@ -15,9 +15,9 @@ Tüm diğer parçalar tamamlandıktan sonra yazılacak.
 4. Hangi araçların çağrıldığını gösterir
 
 BAĞIMLILIKLAR:
-- agent/core.py (Onur'un görevi) - TAMAMLANMIŞ OLMALI
-- tools/ (Gözde ve İrem'in görevi) - TAMAMLANMIŞ OLMALI
-- utils/parser.py (Gamze'nin görevi) - TAMAMLANMIŞ OLMALI
+- agent/core.py (Onur'un görevi) - TAMAMLANDI ✓
+- tools/ (Gözde ve İrem'in görevi) - TAMAMLANDI ✓
+- utils/parser.py (Gamze'nin görevi) - TAMAMLANDI ✓
 
 ÇALIŞTIRMA:
     streamlit run app.py
@@ -26,7 +26,6 @@ BAĞIMLILIKLAR:
 import streamlit as st
 from agent.core import Agent
 from tools.registry import create_default_registry
-
 
 # =============================================================================
 # SAYFA AYARLARI
@@ -51,10 +50,9 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "agent" not in st.session_state:
-    # TODO: Agent'ı başlat (tüm parçalar tamamlandığında)
-    # registry = create_default_registry()
-    # st.session_state.agent = Agent(tool_registry=registry)
-    st.session_state.agent = None  # Şimdilik None
+    # Agent'ı başlat - tüm araçlarla birlikte
+    registry = create_default_registry()
+    st.session_state.agent = Agent(tool_registry=registry)
 
 # =============================================================================
 # CHAT GEÇMİŞİNİ GÖSTER
@@ -63,7 +61,7 @@ if "agent" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        
+
         # Eğer assistant mesajıysa ve düşünce süreci varsa göster
         if message["role"] == "assistant" and "thoughts" in message:
             with st.expander("🧠 Düşünce Süreci", expanded=False):
@@ -82,22 +80,18 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("Bir şey sorun... (örn: İstanbul'da hava nasıl?)"):
     # Kullanıcı mesajını ekle
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
+
     with st.chat_message("user"):
         st.markdown(prompt)
-    
+
     # Agent cevabı
     with st.chat_message("assistant"):
-        # TODO: Agent'ı çalıştır (tüm parçalar tamamlandığında)
-        # with st.spinner("Düşünüyorum..."):
-        #     response, thoughts = st.session_state.agent.run(prompt)
-        
-        # Şimdilik placeholder
-        response = "⚠️ Agent henüz hazır değil. Tüm parçalar tamamlandığında çalışacak!"
-        thoughts = []
-        
+        # Agent'ı çalıştır
+        with st.spinner("Düşünüyorum..."):
+            response, thoughts = st.session_state.agent.run(prompt)
+
         st.markdown(response)
-        
+
         # Düşünce sürecini göster (varsa)
         if thoughts:
             with st.expander("🧠 Düşünce Süreci", expanded=True):
@@ -108,7 +102,7 @@ if prompt := st.chat_input("Bir şey sorun... (örn: İstanbul'da hava nasıl?)"
                         st.warning(f"🔧 Araç: {thought['tool']}({thought['params']})")
                     elif thought["type"] == "observation":
                         st.success(f"📊 Sonuç: {thought['content']}")
-    
+
     # Assistant mesajını kaydet
     st.session_state.messages.append({
         "role": "assistant",
@@ -124,23 +118,23 @@ with st.sidebar:
     st.header("ℹ️ Hakkında")
     st.markdown("""
     Bu uygulama bir **AI Agent** demonstrasyonudur.
-    
+
     **Mevcut Araçlar:**
     - 🌤️ Hava Durumu (OpenWeatherMap)
     - 💱 Döviz Kuru (ExchangeRate API)
-    
+
     **Örnek Sorular:**
     - "İstanbul'da hava nasıl?"
     - "100 dolar kaç TL?"
     - "Ankara'da hava nasıl ve 50 euro kaç lira?"
     """)
-    
+
     st.divider()
-    
+
     st.header("🔧 Geliştirici Bilgisi")
     st.markdown("""
     **Proje:** Smart API Agent
-    
+
     **Ekip:**
     - Gözde (Weather Tool)
     - İrem (Currency Tool)
@@ -148,7 +142,7 @@ with st.sidebar:
     - Onur (Agent Core)
     - Mehmet (Team Lead & UI)
     """)
-    
+
     # Sohbeti temizle butonu
     if st.button("🗑️ Sohbeti Temizle"):
         st.session_state.messages = []
