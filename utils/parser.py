@@ -122,8 +122,67 @@ def parse_llm_response(response: str) -> dict:
     #     "content": "Geçerli bir format bulunamadı",
     #     "raw": response
     # }
-    
-    pass  # Bu satırı sil ve fonksiyonu tamamla
+
+    try:
+        # 1️⃣ Response'u temizle
+        response = response.strip()
+
+        # 2️⃣ THOUGHT'u çıkar (birden fazla olabilir → sonuncusu)
+        thought = None
+        thought_matches = re.findall(
+            r'\[THOUGHT\]\s*(.+?)(?=\[ACTION\]|\[ANSWER\]|$)',
+            response,
+            re.DOTALL
+        )
+        if thought_matches:
+            thought = thought_matches[-1].strip()
+
+        # 3️⃣ ANSWER varsa → direkt answer dön
+        if "[ANSWER]" in response:
+            answer_match = re.search(
+                r'\[ANSWER\]\s*(.+)$',
+                response,
+                re.DOTALL
+            )
+            if answer_match:
+                return {
+                    "type": "answer",
+                    "thought": thought,
+                    "content": answer_match.group(1).strip()
+                }
+
+        # 4️⃣ ACTION varsa → tool ve parametreleri parse et
+        if "[ACTION]" in response:
+            action_match = re.search(
+                r'\[ACTION\]\s*(\w+)\((.*?)\)',
+                response,
+                re.DOTALL
+            )
+            if action_match:
+                tool_name = action_match.group(1)
+                params_str = action_match.group(2)
+                params = _parse_parameters(params_str)
+
+                return {
+                    "type": "action",
+                    "thought": thought,
+                    "tool": tool_name,
+                    "params": params
+                }
+
+        # 5️⃣ Hiçbiri yoksa → hata
+        return {
+            "type": "error",
+            "content": "Geçerli bir LLM formatı bulunamadı",
+            "raw": response
+        }
+
+    except Exception as e:
+        return {
+            "type": "error",
+            "content": f"Parse hatası: {str(e)}",
+            "raw": response
+        }
 
 
 def _parse_parameters(params_str: str) -> dict:
@@ -151,8 +210,32 @@ def _parse_parameters(params_str: str) -> dict:
     #         value = value.strip().strip('"\'')
     #         params[key] = value
     # return params
-    
-    pass  # Bu satırı sil ve fonksiyonu tamamla
+
+    params = {}
+
+    if not params_str.strip():
+        return params
+
+    pairs = params_str.split(",")
+
+    for pair in pairs:
+        if "=" in pair:
+            key, value = pair.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+
+            # Sayıysa int / float yap
+            if value.isdigit():
+                value = int(value)
+            else:
+                try:
+                    value = float(value)
+                except ValueError:
+                    pass
+
+            params[key] = value
+
+    return params
 
 
 def extract_thought(response: str) -> str | None:
@@ -170,8 +253,13 @@ def extract_thought(response: str) -> str | None:
     # TODO: Düşünceyi çıkar
     # match = re.search(r'\[THOUGHT\]\s*(.+?)(?=\[ACTION\]|\[ANSWER\]|$)', response, re.DOTALL)
     # return match.group(1).strip() if match else None
-    
-    pass  # Bu satırı sil ve fonksiyonu tamamla
+
+    matches = re.findall(
+        r'\[THOUGHT\]\s*(.+?)(?=\[ACTION\]|\[ANSWER\]|$)',
+        response,
+        re.DOTALL
+    )
+    return matches[-1].strip() if matches else None
 
 
 # =============================================================================
