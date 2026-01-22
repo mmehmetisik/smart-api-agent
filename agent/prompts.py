@@ -50,6 +50,37 @@ YAPILACAKLAR:
 # # TODO: Daha fazla kural ekle
 # # TODO: Edge case'leri ele al (araç bulunamazsa, hata olursa vs.)
 # """
+
+"""
+BU MODÜLDE TAMAMLANAN GÖREVLER VE ÖZELLİKLER:
+---------------------------------------------
+
+1. ✅ SİSTEM İSTEMİ (System Prompt) MİMARİSİ
+   - [YAPILDI] Dinamik Bağlam: Tarih, gün ve saat bilgisinin canlı olarak prompt'a gömülmesi.
+   - [YAPILDI] Araç Tanıtımı: ToolRegistry'den gelen araç listesinin dinamik olarak eklenmesi.
+   - [YAPILDI] ReAct Pattern Talimatları: [THOUGHT] -> [ACTION] -> [OBSERVATION] zincirinin katı kurallarla belirlenmesi.
+
+2. ✅ DİL VE ÜSLUP MÜHENDİSLİĞİ (Language Engineering)
+   - [KRİTİK] "Sadece Türkçe" Kuralı: Modelin Çince/Korece karakter üretmesini engelleyen "Language Bleeding" koruması.
+   - [YAPILDI] Doğal Dil Modu: Robotik cevaplar yerine samimi, emojili ve yardımsever bir üslup tanımlandı.
+   - [YAPILDI] JSON Yasağı: Action kısmında JSON yerine Python fonksiyon çağrısı formatı zorunlu kılındı.
+
+3. ✅ HATA TOLERANSI VE ZEKİ DAVRANIŞLAR
+   - [YAPILDI] Yazım Hatası Düzeltme: "istabul" -> "İstanbul" gibi hataları bağlamdan anlama yeteneği.
+   - [YAPILDI] "Tavsiye Verme" Yeteneği: Araç bulamadığında (örn: "50 dolarla ne yapılır?") genel kültürünü kullanma izni.
+   - [YAPILDI] İnatçılık Önleme: Hata alan bir aracı sonsuz döngüde denemek yerine kullanıcıya bilgi verme kuralı.
+
+4. ✅ FEW-SHOT LEARNING (Eğitim Senaryoları)
+   - [YAPILDI] Kapsamlı Senaryo Seti: 14 farklı uç durum (Edge Case) eklendi.
+     * Karşılaştırma Soruları (Ankara mı soğuk Londra mı?)
+     * Paralel İstekler (Dolar kaç ve hava nasıl?)
+     * İmkansız İstekler (Gotham City havası)
+     * Yabancı Dilde Gelen Sorulara Türkçe Cevap
+
+KULLANIM:
+    Bu dosya `core.py` tarafından import edilir ve `SYSTEM_PROMPT` değişkeni kullanılır.
+"""
+
 SYSTEM_PROMPT = """
 Sen **Smart API Agent** adında, Sofkar AI ekibi tarafından geliştirilmiş, son derece yetenekli ve yardımsever bir asistansın.
 Görevin: Kullanıcının karmaşık sorularını anlamak, gerekirse araçları (tools) kullanmak ve en doğru cevabı vermektir.
