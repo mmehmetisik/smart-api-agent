@@ -176,6 +176,36 @@ Durum: DEBUG MODU & GAMZE UYUMLU
 
 Bu sürüm, Gamze'nin registry.py yapısına (get_tools_description) tam uyumludur.
 """
+"""
+BU MODÜLDE TAMAMLANAN GÖREVLER VE ÖZELLİKLER:
+---------------------------------------------
+
+1. ✅ BAŞLATMA VE KONFİGÜRASYON (Initialization)
+   - [YAPILDI] Ortam değişkenleri (.env) ve Config dosyasından ayarların yüklenmesi.
+   - [YAPILDI] Groq API istemcisinin güvenli şekilde başlatılması.
+   - [YAPILDI] ToolRegistry entegrasyonu (Gamze'nin modülüyle uyumlu).
+   - [EKSTRA] "Duck Typing" kontrolü ile Registry modülü olmasa bile çökmemesi sağlandı.
+
+2. ✅ REACT DÖNGÜSÜ (The Brain)
+   - [YAPILDI] Kullanıcı mesajını alma ve geçmişi (history) yönetme.
+   - [YAPILDI] Dinamik Sistem Prompt'u: Tarih, gün ve araç listesini anlık güncelleme.
+   - [YAPILDI] Düşünme Zinciri (Chain of Thought): [THOUGHT] -> [ACTION] -> [OBSERVATION].
+   - [YAPILDI] Döngü Sınırı: Sonsuz döngüyü engellemek için MAX_ITERATIONS kontrolü.
+
+3. ✅ GÜVENLİK VE SAĞLAMLIK (Safety & Robustness)
+   - [EKSTRA] "Güçlendirilmiş Emniyet Freni": LLM'in kendi kendine cevap uydurmasını (hallucination) engellemek için [ACTION] sonrası string kesme işlemi.
+   - [EKSTRA] "Language Bleeding" Koruması: Prompt mühendisliği ile Çince/Yabancı karakter üretimi engellendi.
+   - [EKSTRA] Yedek Parser (Fallback): Parser modülü hata verirse devreye giren basit manuel parser.
+
+4. ✅ HATA YÖNETİMİ VE SİMÜLASYON (Error Handling)
+   - [YAPILDI] API Hata Yönetimi: Groq API 429 (Rate Limit) veya 500 hatalarının yakalanması.
+   - [EKSTRA] "Yedek Paraşüt" (Mock Data): Eğer Registry veya API çalışmazsa, sistemin çökmemesi için sahte veri (Simülasyon Modu) ile cevap verme yeteneği.
+
+KULLANIM:
+    agent = Agent(tool_registry=registry)
+    cevap, gecmis = agent.run("İstanbul'da hava nasıl?")
+"""
+
 
 import os
 import locale
@@ -190,7 +220,7 @@ except ImportError:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     MODEL_NAME = "llama-3.3-70b-versatile"
     MAX_ITERATIONS = 5
-    TEMPERATURE = 0.7
+    TEMPERATURE = 0.1
 
 from agent.prompts import SYSTEM_PROMPT
 
@@ -294,14 +324,29 @@ class Agent:
 
         print(f"\nKullanıcı: {user_input}")
 
-        # 4. Ana ReAct Döngüsü (Maksimum iterasyon sayısı kadar döner)
+        # 4. ReAct Döngüsü
         for iteration in range(MAX_ITERATIONS):
             print(f"Düşünüyor... (Adım {iteration + 1}/{MAX_ITERATIONS})")
 
             # A. LLM Çağır
             llm_response = self._call_llm(messages)
-            print(f"[DEBUG] LLM Ham Cevap:\n{llm_response}\n-------------------")
 
+            # --- GÜÇLENDİRİLMİŞ EMNİYET FRENİ BAŞLANGIÇ ---
+            # Eğer cevapta bir aksiyon varsa, sonrasındaki her şeyi (Answer, Observation) acımasızca kesiyoruz.
+            if "[ACTION]" in llm_response:
+                # Önce Observation var mı diye bak, varsa oradan kes
+                if "[OBSERVATION]" in llm_response:
+                    llm_response = llm_response.split("[OBSERVATION]")[0]
+
+                # Eğer Answer varsa (ve hala kesilmediyse) oradan kes
+                if "[ANSWER]" in llm_response:
+                    llm_response = llm_response.split("[ANSWER]")[0]
+
+                # Temizlik yap (boşlukları sil)
+                llm_response = llm_response.strip()
+            # --- GÜÇLENDİRİLMİŞ EMNİYET FRENİ BİTİŞ ---
+
+            print(f"[DEBUG] LLM Ham Cevap:\n{llm_response}\n-------------------")
             # B. Parse Et
             parsed = None
             if parse_llm_response:
@@ -386,9 +431,18 @@ if __name__ == "__main__":
         pass
 
     try:
-        # Agent'ı başlat (Registry yoksa bile mock modunda çalışır)
-        agent = Agent()
-        cevap, gecmis = agent.run("Yarın Ankara'da hava nasıl?")
+        # 1. Dolu alet çantasını (Registry) getir
+        from tools.registry import create_default_registry
+
+        print("🛠️  Araçlar yükleniyor...")
+        registry = create_default_registry()
+
+        # 2. Ajanı bu alet çantasıyla başlat
+        agent = Agent(tool_registry=registry)
+
+        # 3. Test sorusunu sor
+        cevap, gecmis = agent.run("100 Dolar kaç Türk Lirası eder?")
+
         print("\nSONUÇ:")
         print(cevap)
     except Exception as e:
